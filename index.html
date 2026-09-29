@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Urlaub – Karteikarten A1/A2</title>
+<style>
+:root{
+  --sky:#1F6FB2; --sky2:#3E97D6; --sea:#0E4C7E; --sand:#FFF7E8; --sand2:#FDEBC8;
+  --ink:#1D2B3A; --muted:#687588; --sun:#FFB627; --coral:#F2665A;
+  --ok:#2E8B57; --no:#D0394F; --der:#2563A8; --die:#C2334C; --das:#2E8B57;
+}
+*,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:#fff;
+  background:linear-gradient(180deg,var(--sky2) 0%,var(--sky) 55%,var(--sea) 100%);background-color:var(--sky);
+  overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+body::before{content:"";position:fixed;left:0;right:0;bottom:0;height:90px;pointer-events:none;opacity:.25;
+  background:radial-gradient(60px 18px at 30px 90px,#fff 98%,transparent) 0 0/120px 90px repeat-x}
+button{font:inherit;cursor:pointer;border:0}
+button:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;
+  padding:calc(env(safe-area-inset-top,0px) + 14px) 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
+.screen.active{display:flex}
+
+/* START */
+#start{gap:16px;text-align:center;overflow-y:auto;justify-content:flex-start;padding-top:calc(env(safe-area-inset-top,0px) + 28px)}
+.sunlogo{width:64px;height:64px;border-radius:50%;background:var(--sun);box-shadow:0 0 0 10px rgba(255,182,39,.25),0 0 0 22px rgba(255,182,39,.12);flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:30px}
+.title{font-family:Georgia,"Times New Roman",serif;font-size:clamp(46px,14vw,66px);line-height:1;margin:8px 0 0}
+.sub{margin:0;font-size:14.5px;opacity:.92;line-height:1.5;max-width:340px}
+.modes{display:flex;flex-direction:column;gap:12px;width:min(100%,390px)}
+.mode{background:var(--sand);color:var(--ink);border-radius:14px;padding:14px 18px 14px 20px;text-align:left;position:relative;
+  box-shadow:0 5px 0 rgba(0,0,0,.2);transition:transform .12s;overflow:hidden}
+.mode::after{content:"";position:absolute;right:62px;top:8px;bottom:8px;border-left:2px dashed #D9C9A8}
+.mode .ic{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:26px}
+.mode:active{transform:translateY(3px)}
+.mode b{display:block;font-size:18px;padding-right:56px}
+.mode span{font-size:13.5px;color:var(--muted);display:block;padding-right:56px}
+.sect{font-size:14px;opacity:.9;margin:4px 0 -4px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:min(100%,420px)}
+.chip{background:rgba(255,255,255,.14);color:#fff;border:1.5px solid rgba(255,255,255,.35);border-radius:18px;padding:7px 12px;font-size:13.5px}
+.chip.on{background:var(--sun);border-color:var(--sun);color:var(--ink);font-weight:700}
+.opts{display:flex;align-items:center;gap:10px;font-size:15px}
+.opts input{width:22px;height:22px;accent-color:var(--sun)}
+
+/* GAME */
+.topbar{width:min(100%,440px);display:flex;align-items:center;gap:12px}
+.iconbtn{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:18px;flex:none}
+.route{flex:1;position:relative}
+.line{height:0;border-top:2px dashed rgba(255,255,255,.5);position:relative;top:10px}
+.plane{position:absolute;top:-2px;left:0;font-size:20px;transform:translateX(-50%);transition:left .35s}
+.stats{display:flex;justify-content:space-between;font-size:13px;margin-top:22px;font-variant-numeric:tabular-nums}
+.stats .k{color:#B6F0CC;font-weight:700}.stats .u{color:#FFC4CC;font-weight:700}
+
+.stage{flex:1;width:100%;display:flex;align-items:center;justify-content:center;perspective:1300px;min-height:0;padding:10px 0 16px}
+.hang{position:relative;width:min(92vw,400px);height:min(62vh,500px)}
+.card{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.3,.7,.3,1);cursor:pointer;touch-action:pan-y}
+.card.flipped{transform:rotateY(180deg)}
+.card.noanim{transition:none}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  background:var(--sand);color:var(--ink);border-radius:18px;overflow:hidden;
+  display:flex;flex-direction:column;box-shadow:0 14px 30px rgba(0,0,0,.3)}
+.face.back{transform:rotateY(180deg);background:#FFFDF8}
+.stub{flex:none;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;
+  background:var(--sea);color:#fff;font-size:13px;position:relative}
+.back .stub{background:var(--coral)}
+.stub b{font-size:14px;letter-spacing:.3px}
+.stub::after{content:"";position:absolute;left:14px;right:14px;bottom:-1px;border-bottom:3px dotted var(--sand)}
+.back .stub::after{border-bottom-color:#FFFDF8}
+.body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:16px 22px 40px;overflow-y:auto;min-height:0}
+.cat{font-size:12.5px;color:var(--muted);margin-bottom:12px}
+.word{font-weight:700;line-height:1.25;word-break:break-word;hyphens:auto}
+.pl{font-size:15px;color:var(--muted);margin-top:6px}
+.vi{font-weight:600;line-height:1.4}
+.ex{font-family:Georgia,serif;font-style:italic;font-size:16px;line-height:1.5;color:#35465A;margin-top:14px;max-width:32ch}
+.small{font-size:14.5px;color:var(--muted);line-height:1.4;margin-bottom:10px}
+.art-der{color:var(--der)}.art-die{color:var(--die)}.art-das{color:var(--das)}
+.hint{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:12.5px;color:var(--muted)}
+.speak{display:flex;gap:10px;margin-top:16px;justify-content:center;flex-wrap:wrap}
+.speak button{height:44px;min-width:44px;padding:0 12px;border-radius:22px;background:var(--sea);color:#fff;font-size:18px;box-shadow:0 3px 0 #072d4c}
+.speak button:active{transform:translateY(2px);box-shadow:0 1px 0 #072d4c}
+.speak button.txt{font-size:14px}
+
+.stamp{position:absolute;top:42%;left:50%;font-weight:800;font-size:28px;padding:6px 16px;border:4px solid;border-radius:50px;
+  transform:translate(-50%,-50%) rotate(-12deg) scale(.6);opacity:0;pointer-events:none;z-index:5;background:rgba(255,255,255,.9);transition:all .18s}
+.stamp.ok{color:var(--ok);border-color:var(--ok)}.stamp.no{color:var(--no);border-color:var(--no)}
+.stamp.show{opacity:1;transform:translate(-50%,-50%) rotate(-12deg) scale(1)}
+.stamp.no.show{transform:translate(-50%,-50%) rotate(12deg) scale(1)}
+
+.controls{width:min(100%,440px);display:flex;gap:12px;min-height:62px}
+.big{flex:1;border-radius:16px;padding:12px 8px;font-size:17px;font-weight:700;color:#fff;line-height:1.15}
+.big small{display:block;font-weight:500;font-size:12.5px;opacity:.9;margin-top:2px}
+.big:active{transform:translateY(3px)}
+.flipbtn{background:var(--sun);color:var(--ink);box-shadow:0 5px 0 #b67d0c}
+.nobtn{background:var(--no);box-shadow:0 5px 0 #8f1f31}
+.okbtn{background:var(--ok);box-shadow:0 5px 0 #1c5a37}
+.ghost{background:rgba(255,255,255,.18);box-shadow:none}
+
+/* END */
+#end{justify-content:center;gap:18px;text-align:center}
+.result{background:var(--sand);color:var(--ink);width:min(100%,360px);border-radius:18px;overflow:hidden}
+.result .stub{justify-content:center}
+.result .rb{padding:22px}
+.result h2{font-family:Georgia,serif;font-size:32px;margin:0 0 6px}
+.result p{margin:4px 0;font-size:16px}
+.score{font-size:52px;font-weight:800;color:var(--ok);margin:6px 0}
+.endbtns{display:flex;flex-direction:column;gap:12px;width:min(100%,360px)}
+.endbtns .big{flex:none}
+canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
+@media (max-height:640px){.hang{height:min(58vh,440px)}}
+
+/* QUIZ – nền xanh cốm */
+.mode.quizmode{background:#DDEFCB}
+.mode.quizmode::after{border-left-color:#B5D39A}
+#quiz{background:#CFE8B8;color:#23391C;overflow-y:auto;justify-content:flex-start}
+#quiz .iconbtn{background:rgba(35,57,28,.12);color:#23391C}
+.qtop{width:min(100%,460px);display:flex;align-items:center;gap:12px;flex:none}
+.qprog{flex:1}
+.qbar{height:8px;border-radius:4px;background:rgba(35,57,28,.14);overflow:hidden}
+.qfill{height:100%;width:0;background:#5E9A3A;border-radius:4px;transition:width .35s}
+.qstat{display:flex;justify-content:space-between;font-size:13.5px;margin-top:6px;color:#3E5A33;font-variant-numeric:tabular-nums}
+.qcard{width:min(100%,460px);background:#F6FBF0;border-radius:18px;padding:20px 18px 18px;margin-top:16px;box-shadow:0 8px 20px rgba(35,57,28,.15);flex:none}
+.qnum{font-size:13px;color:#5B7A4C;margin-bottom:8px}
+.qtext{font-size:20px;font-weight:700;line-height:1.35;margin:0 0 16px}
+.qopts{display:flex;flex-direction:column;gap:10px}
+.qopt{display:flex;gap:12px;align-items:flex-start;text-align:left;background:#fff;color:#23391C;border:2px solid #CFE3BE;border-radius:14px;padding:12px 14px;font-size:16px;line-height:1.4;transition:background .15s,border-color .15s}
+.qopt .l{flex:none;width:28px;height:28px;border-radius:50%;background:#E4F1D7;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.qopt:active{transform:scale(.99)}
+.qopt.right{background:#DDF3D6;border-color:#2E8B57}
+.qopt.right .l{background:#2E8B57;color:#fff}
+.qopt.wrong{background:#FBE1E4;border-color:#D0394F}
+.qopt.wrong .l{background:#D0394F;color:#fff}
+.qopt[disabled]{cursor:default}
+.qopt.dim{opacity:.55}
+.qexp{margin-top:14px;border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.5;display:none}
+.qexp.show{display:block}
+.qexp.ok{background:#E3F4DA;border-left:5px solid #2E8B57}
+.qexp.bad{background:#FCEBEC;border-left:5px solid #D0394F}
+.qexp b{display:block;margin-bottom:3px}
+.qnext{width:min(100%,460px);margin-top:16px;flex:none;background:#5E9A3A;box-shadow:0 5px 0 #3C6824;visibility:hidden}
+.qnext.show{visibility:visible}
+.qres{width:min(100%,460px);text-align:center;margin-top:16px}
+.qres h2{font-family:Georgia,serif;font-size:32px;margin:6px 0}
+.qres .score{color:#3C7A22}
+.qreview{text-align:left;margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.qreview div{background:#F6FBF0;border-radius:12px;padding:10px 12px;font-size:14.5px;line-height:1.45}
+.qreview .x{border-left:5px solid #D0394F}.qreview .v{border-left:5px solid #2E8B57}
+.qbtns{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+.qbtns .big{flex:none}
+.qghost{background:rgba(35,57,28,.12);color:#23391C;box-shadow:none}
+@media (prefers-reduced-motion:reduce){.card{transition:none}}
+</style>
+</head>
+<body>
+
+<section id="start" class="screen active">
+  <div class="sunlogo">✈️</div>
+  <h1 class="title">Urlaub</h1>
+  <p class="sub">Flashcard từ vựng tiếng Đức, tổng hợp từ 2 video Easy German. Đầy đủ giống, số nhiều &amp; ví dụ thuần Đức.</p>
+  <div class="modes">
+    <button class="mode" data-mode="de"><b>🇩🇪 Deutsch → Tiếng Việt</b><span>Xem tiếng Đức, đoán nghĩa tiếng Việt</span><i class="ic">🧳</i></button>
+    <button class="mode" data-mode="vi"><b>🇻🇳 Tiếng Việt → Deutsch</b><span>Xem tiếng Việt, đoán từ tiếng Đức</span><i class="ic">🗺️</i></button>
+    <button class="mode quizmode" id="openQuiz"><b>✅ Quiz: Fragen zum Video</b><span>10 câu hỏi trắc nghiệm có giải thích</span><i class="ic">📝</i></button>
+  </div>
+  <p class="sect">Chọn chủ đề (có thể chọn nhiều):</p>
+  <div class="chips" id="chips"></div>
+  <label class="opts"><input type="checkbox" id="shuffle" checked> Karten mischen (xáo trộn thẻ)</label>
+</section>
+
+<section id="game" class="screen">
+  <div class="topbar">
+    <button class="iconbtn" id="home" aria-label="Zum Menü">✕</button>
+    <div class="route">
+      <div class="line"></div><div class="plane" id="plane">✈️</div>
+      <div class="stats"><span id="count">1 / 34</span><span><span class="k" id="kn">✓ 0</span>&nbsp;&nbsp;<span class="u" id="un">✗ 0</span></span></div>
+    </div>
+  </div>
+  <div class="stage">
+    <div class="hang">
+      <div class="card" id="card">
+        <div class="face front"><div class="stub"><b id="fSide"></b><span id="fNr"></span></div><div class="body" id="fBody"></div><div class="hint">Chạm để lật</div></div>
+        <div class="face back"><div class="stub"><b id="bSide"></b><span id="bNr"></span></div><div class="body" id="bBody"></div></div>
+      </div>
+      <div class="stamp ok" id="stOk">Gewusst!</div>
+      <div class="stamp no" id="stNo">Noch nicht</div>
+    </div>
+  </div>
+  <div class="controls" id="controls"></div>
+</section>
+
+<section id="end" class="screen">
+  <div class="result">
+    <div class="stub"><b>✈️ Angekommen!</b></div>
+    <div class="rb"><h2 id="endTitle">Super!</h2><div class="score" id="endScore">0 / 0</div><p id="endText"></p></div>
+  </div>
+  <div class="endbtns" id="endBtns"></div>
+</section>
+<section id="quiz" class="screen">
+  <div class="qtop">
+    <button class="iconbtn" id="qHome" aria-label="Zum Menü">✕</button>
+    <div class="qprog"><div class="qbar"><div class="qfill" id="qFill"></div></div>
+      <div class="qstat"><span id="qCount">Frage 1 / 10</span><span id="qScore">Richtig: 0</span></div></div>
+  </div>
+  <div id="qMain">
+    <div class="qcard">
+      <div class="qnum">Fragen · Câu hỏi trắc nghiệm</div>
+      <p class="qtext" id="qText"></p>
+      <div class="qopts" id="qOpts"></div>
+      <div class="qexp" id="qExp"></div>
+    </div>
+    <button class="big qnext" id="qNext">Weiter<small>Câu tiếp theo</small></button>
+  </div>
+  <div class="qres" id="qRes" style="display:none"></div>
+</section>
+
+<canvas id="confetti"></canvas>
+
+<script>
+/* ===== DATA: "Flashcard từ vựng tiếng Đức: Thema Urlaub" ===== */
+const CATS=[
+ ["Grundwortschatz","Từ vựng cơ bản"],
+ ["Reiseziele & Orte","Điểm đến & Địa điểm"],
+ ["Unterkunft & Aufenthalt","Chỗ ở & Lưu trú"],
+ ["Verkehrsmittel","Phương tiện giao thông"],
+ ["Aktivitäten & Freizeit","Hoạt động & Giải trí"],
+ ["Gepäck & Gegenstände","Hành lý & Vật dụng"],
+ ["Wetter & Eigenschaften","Thời tiết & Tính từ"],
+ ["Nützliche Redemittel","Mẫu câu giao tiếp hữu ích"]
+];
+/* [Kategorie, Wort, Plural/Formen, Nghĩa, Beispiel] */
+const CARDS=[
+ [0,"der Urlaub","die Urlaube","Kỳ nghỉ (cho người đi làm)","Ich mache im Sommer drei Wochen Urlaub in Spanien."],
+ [0,"die Ferien","Plural","Kỳ nghỉ (cho học sinh, sinh viên)","Die Kinder haben im Juli Sommerferien."],
+ [0,"die Reise","die Reisen","Chuyến đi, cuộc hành trình","Die Reise nach Italien war wunderschön."],
+ [0,"reisen","reiste, ist gereist","Du lịch, đi lại","Anna reist sehr gern in verschiedene Länder."],
+ [1,"das Meer","die Meere","Biển, đại dương","Wir fahren jedes Jahr ans Meer."],
+ [1,"der Strand","die Strände","Bãi biển","Lukas liegt am Strand und liest ein Buch."],
+ [1,"die Berge","Plural","Núi, dãy núi","In den Bergen kann man sehr gut wandern."],
+ [1,"die Natur","","Thiên nhiên","Ich genieße die frische Luft in der Natur."],
+ [2,"das Hotel","die Hotels","Khách sạn","Das Hotel liegt direkt am Meer."],
+ [2,"die Ferienwohnung","die Ferienwohnungen","Căn hộ du lịch","In einer Ferienwohnung kann man selbst kochen."],
+ [2,"das Zimmer","die Zimmer","Căn phòng","Unser Zimmer hat einen schönen Balkon."],
+ [2,"der Schlüssel","die Schlüssel","Chìa khóa","Hier ist der Schlüssel für Ihr Zimmer."],
+ [2,"der Balkon","die Balkone","Ban công","Jeden Morgen trinke ich Kaffee auf dem Balkon."],
+ [2,"buchen","buchte, hat gebucht","Đặt phòng / đặt vé","Ich buche das Hotelzimmer immer früh."],
+ [3,"das Flugzeug","die Flugzeuge","Máy bay","Das Flugzeug ist sehr schnell."],
+ [3,"der Zug","die Züge","Tàu hỏa","Der Zug ist pünktlich angekommen."],
+ [3,"das Auto","die Autos","Ô tô","Mit dem Auto zu fahren ist manchmal günstiger."],
+ [3,"das Ticket / die Karte","die Tickets","Vé (tàu, máy bay, vào cửa)","Ich kaufe ein Ticket für den Zug."],
+ [4,"wandern","wanderte, ist gewandert","Đi bộ đường dài, leo núi","Ben wandert jeden Tag in den Alpen."],
+ [4,"schwimmen","schwamm, ist geschwommen","Bơi lội","Anna geht jeden Morgen im Meer schwimmen."],
+ [4,"Fotos machen","","Chụp ảnh","Ich mache viele Fotos im Urlaub."],
+ [4,"Ski fahren","","Trượt tuyết","Im Winter fahre ich gern Ski."],
+ [5,"der Koffer","die Koffer","Vali","Ich packe meinen Koffer für die Reise."],
+ [5,"das Souvenir","die Souvenirs","Đồ lưu niệm","Ich kaufe Magnete als Souvenir."],
+ [5,"die Postkarte","die Postkarten","Bưu thiếp","Anna schickt ihrer Familie eine Postkarte."],
+ [5,"das Ladegerät","die Ladegeräte","Bộ sạc (điện thoại)","Vergiss das Ladegerät für das Handy nicht!"],
+ [6,"die Sonne","","Mặt trời","Die Sonne scheint heute sehr warm."],
+ [6,"der Regen","","Cơn mưa","Bei Regen bleibe ich im Hotel."],
+ [6,"heiß / warm / kalt","","Nóng / Ấm áp / Lạnh","Das Wetter ist heute sehr heiß."],
+ [6,"günstig / billig / teuer","","Giá rẻ, phải chăng / Rẻ / Đắt tiền","Das Ticket ist sehr günstig."],
+ [7,"Entschuldigung, sprechen Sie Englisch?","","Xin lỗi, bạn/ngài có nói tiếng Anh không?","Entschuldigung, sprechen Sie Englisch? Ich brauche Hilfe."],
+ [7,"Ich hätte gern ... , bitte.","","Tôi muốn dùng/lấy ... , làm ơn.","Ich hätte gern eine Pizza und ein Wasser, bitte."],
+ [7,"Wie viel kostet das?","","Cái này giá bao nhiêu?","Wie viel kostet dieses Souvenir?"],
+ [7,"Gute Reise! / Guten Flug!","","Chúc thượng lộ bình an! / Chúc chuyến bay tốt lành!","Tschüss und gute Reise!"]
+];
+
+let mode="de",deck=[],pos=0,known=[],unknown=[],flipped=false,busy=false;
+const sel=new Set(CATS.map((_,i)=>i));
+const $=id=>document.getElementById(id),card=$("card");
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmtDe=s=>esc(s).replace(/\b(der|die|das)(?=\s+[A-ZÄÖÜ])/g,m=>`<span class="art-${m}">${m}</span>`);
+const sizeW=s=>{const n=s.length;return n>30?"24px":n>20?"28px":n>13?"33px":"40px"};
+const sizeV=s=>{const n=s.length;return n>40?"22px":n>26?"25px":"30px"};
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active",s.id===id))}
+function plText(c){return c[2]==="Plural"?"(Plural)":c[2]?(/^(die|der|das) /.test(c[2])?"Pl.: ":"")+c[2]:""}
+
+/* chips */
+function drawChips(){
+  const all=sel.size===CATS.length;
+  $("chips").innerHTML=`<button class="chip ${all?"on":""}" data-c="all">Alle (${CARDS.length})</button>`+
+    CATS.map((c,i)=>`<button class="chip ${!all&&sel.has(i)?"on":""}" data-c="${i}">${esc(c[1])}</button>`).join("");
+  $("chips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{
+    const c=b.dataset.c;
+    if(c==="all"){CATS.forEach((_,i)=>sel.add(i))}
+    else{const i=+c;if(sel.size===CATS.length){sel.clear();sel.add(i)}else if(sel.has(i)){sel.delete(i);if(!sel.size)CATS.forEach((_,j)=>sel.add(j))}else sel.add(i)}
+    drawChips()});
+}
+drawChips();
+
+/* TTS */
+let deVoice=null;
+function pickVoice(){const v=speechSynthesis.getVoices();
+  deVoice=v.find(x=>/^de[-_]DE/i.test(x.lang)&&/google|anna|helena|katja|premium|enhanced/i.test(x.name))||v.find(x=>/^de/i.test(x.lang))||null}
+if("speechSynthesis" in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+function speak(text,rate){
+  if(!("speechSynthesis" in window))return;speechSynthesis.cancel();
+  const t=text.replace(/\s*\.\.\.\s*,?/g,", … ").replace(/\s*\/\s*/g,", ");
+  const u=new SpeechSynthesisUtterance(t);u.lang="de-DE";u.rate=rate;if(deVoice)u.voice=deVoice;speechSynthesis.speak(u);
+}
+function speakWord(c){let t=c[1];if(c[2]&&c[2]!=="Plural")t+=", "+c[2];return t}
+function speakBtns(){return `<div class="speak"><button data-say="w" data-rate="0.9" aria-label="Wort anhören">🔊</button><button data-say="w" data-rate="0.5" aria-label="Langsam anhören">🐢</button><button class="txt" data-say="s" data-rate="0.9">🔊 Beispiel</button></div>`}
+function wireSpeak(root){root.querySelectorAll("[data-say]").forEach(b=>{
+  b.addEventListener("pointerdown",e=>e.stopPropagation());
+  b.addEventListener("click",e=>{e.stopPropagation();const c=CARDS[deck[pos]];speak(b.dataset.say==="w"?speakWord(c):c[4],parseFloat(b.dataset.rate))})});}
+
+/* FLOW */
+function start(m,indices){
+  mode=m;
+  deck=indices?indices.slice():CARDS.map((c,i)=>sel.has(c[0])?i:-1).filter(i=>i>=0);
+  if($("shuffle").checked)for(let i=deck.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[deck[i],deck[j]]=[deck[j],deck[i]]}
+  pos=0;known=[];unknown=[];flipped=false;show("game");render();
+}
+function deBlock(c){
+  const pl=plText(c);
+  return `<div class="word" style="font-size:${sizeW(c[1])}">${fmtDe(c[1])}</div>`+
+    (pl?`<div class="pl">${fmtDe(pl)}</div>`:"")+`<div class="ex">„${esc(c[4])}“</div>`+speakBtns();
+}
+function render(){
+  const i=deck[pos],c=CARDS[i],de=mode==="de",f=$("fBody"),b=$("bBody");
+  const catTxt=`<div class="cat">${esc(CATS[c[0]][0])} · ${esc(CATS[c[0]][1])}</div>`;
+  $("fSide").textContent=de?"DEUTSCH":"TIẾNG VIỆT";$("bSide").textContent=de?"TIẾNG VIỆT":"DEUTSCH";
+  $("fNr").textContent=$("bNr").textContent="Nr. "+String(i+1).padStart(2,"0");
+  const viHtml=`<div class="vi" style="font-size:${sizeV(c[3])}">${esc(c[3])}</div>`;
+  if(de){f.innerHTML=catTxt+deBlock(c);
+    b.innerHTML=`<div class="small">${fmtDe(c[1])}</div>`+viHtml+`<div class="ex" style="font-size:14.5px">„${esc(c[4])}“</div>`+speakBtns();}
+  else{f.innerHTML=catTxt+viHtml;b.innerHTML=deBlock(c);}
+  wireSpeak(f);wireSpeak(b);
+  $("count").textContent=(pos+1)+" / "+deck.length;
+  $("kn").textContent="✓ "+known.length;$("un").textContent="✗ "+unknown.length;
+  $("plane").style.left=(pos/deck.length*100)+"%";
+  setControls();
+}
+function setControls(){const c=$("controls");
+  if(!flipped){c.innerHTML=`<button class="big flipbtn" id="bFlip">Umdrehen<small>Lật thẻ</small></button>`;$("bFlip").onclick=flip}
+  else{c.innerHTML=`<button class="big nobtn" id="bNo">✗ Noch nicht<small>Chưa thuộc</small></button><button class="big okbtn" id="bOk">✓ Gewusst<small>Đã thuộc</small></button>`;
+    $("bNo").onclick=()=>judge(false);$("bOk").onclick=()=>judge(true)}}
+function flip(){if(busy)return;flipped=!flipped;card.classList.toggle("flipped",flipped);setControls()}
+function judge(ok){
+  if(busy||!flipped)return;busy=true;(ok?known:unknown).push(deck[pos]);
+  const st=ok?$("stOk"):$("stNo");st.classList.add("show");
+  card.style.transition="transform .38s ease-in";
+  card.style.transform=`translateX(${ok?120:-120}vw) rotate(${ok?18:-18}deg) rotateY(180deg)`;
+  setTimeout(()=>{st.classList.remove("show");pos++;
+    if(pos>=deck.length){busy=false;resetCard();finish();return}
+    resetCard();render();
+    card.animate&&card.animate([{transform:"translateY(-30px)",opacity:0},{transform:"none",opacity:1}],{duration:280,easing:"ease-out"});
+    busy=false},380);
+}
+function resetCard(){card.classList.add("noanim");card.style.transition="";card.style.transform="";flipped=false;card.classList.remove("flipped");void card.offsetWidth;card.classList.remove("noanim")}
+function finish(){
+  $("plane").style.left="100%";
+  const k=known.length,t=deck.length;$("endScore").textContent=k+" / "+t;
+  $("endTitle").textContent=k===t?"Perfekt!":k>=t*.7?"Super!":"Weiter so!";
+  $("endText").textContent=unknown.length?`Còn ${unknown.length} thẻ chưa thuộc. Ôn lại nhé!`:"Bạn đã thuộc tất cả các thẻ! 🎉";
+  const u=unknown.slice();
+  $("endBtns").innerHTML=(u.length?`<button class="big nobtn" id="eU">Schwierige Karten wiederholen (${u.length})<small>Ôn lại thẻ chưa thuộc</small></button>`:"")+
+    `<button class="big okbtn" id="eA">Alle Karten nochmal<small>Chơi lại tất cả</small></button><button class="big ghost" id="eM">Zum Menü<small>Chọn lại chế độ</small></button>`;
+  if(u.length)$("eU").onclick=()=>start(mode,u);
+  $("eA").onclick=()=>start(mode);$("eM").onclick=()=>show("start");
+  show("end");if(k>=t*.5)confetti();
+}
+
+/* INPUT */
+document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>start(b.dataset.mode));
+$("home").onclick=()=>{window.speechSynthesis&&speechSynthesis.cancel();resetCard();show("start")};
+let sx=0,sy=0,drag=false,dx=0;
+const clearStamps=()=>{$("stOk").classList.remove("show");$("stNo").classList.remove("show")};
+card.addEventListener("pointerdown",e=>{if(busy)return;drag=true;sx=e.clientX;sy=e.clientY;dx=0});
+card.addEventListener("pointermove",e=>{if(!drag||!flipped)return;dx=e.clientX-sx;if(Math.abs(dx)<8)return;
+  card.style.transition="none";card.style.transform=`translateX(${dx}px) rotate(${dx/20}deg) rotateY(180deg)`;
+  $("stOk").classList.toggle("show",dx>60);$("stNo").classList.toggle("show",dx<-60)});
+card.addEventListener("pointerup",e=>{if(!drag)return;drag=false;
+  const moved=Math.abs(e.clientX-sx)+Math.abs(e.clientY-sy);
+  if(flipped&&Math.abs(dx)>90){clearStamps();judge(dx>0);return}
+  if(flipped&&Math.abs(dx)>=8){card.style.transition="transform .25s";card.style.transform="";clearStamps();setTimeout(()=>card.style.transition="",260);return}
+  if(moved<12)flip()});
+card.addEventListener("pointercancel",()=>{drag=false;card.style.transform="";clearStamps()});
+document.addEventListener("keydown",e=>{if(!$("game").classList.contains("active"))return;
+  if(e.key===" "||e.key==="Enter"){e.preventDefault();flip()}else if(e.key==="ArrowRight")judge(true);else if(e.key==="ArrowLeft")judge(false)});
+document.addEventListener("gesturestart",e=>e.preventDefault());
+
+/* ===== QUIZ: Fragen (Câu hỏi trắc nghiệm) — [Frage, [A,B,C], richtig (0-2), Giải thích] ===== */
+const QUIZ=[
+ ["Wohin fährt Anna im Urlaub am liebsten?",["In die Berge","Ans Meer / an den Strand","In eine große Stadt"],1,"Anna chia sẻ rằng cô rất thích biển và thường thích đi ra biển nằm tắm nắng."],
+ ["Womit ist Anna in ihrem letzten Urlaub nach Italien gereist?",["Mit dem Auto","Mit dem Zug","Mit dem Flugzeug"],2,"Anna đã đi du lịch Ý bằng máy bay cho nhanh, trong khi Ben thường thích đi ô tô hơn."],
+ ["Wo hat Ben während seines Urlaubs in Österreich gewohnt?",["In einem Hotel","In einer Ferienwohnung","Auf einem Campingplatz"],1,"Ben ở trong một căn hộ nghỉ dưỡng để có thể tự nấu ăn cho tiết kiệm."],
+ ["Welches süße Spezialgericht isst Ben sehr gerne im Urlaub in Österreich?",["Pizza","Italienisches Eis","Kaiserschmarrn"],2,"Ben thích ăn món Kaiserschmarrn (một dạng bánh kếp cắt nhỏ ăn kèm nho khô) khi ở Áo."],
+ ["Welches Souvenir kauft Anna gerne für ihren Kühlschrank?",["Postkarten","Kleine Magnete","Eintrittskarten für Museen"],1,"Anna (và cả Ben) đều thích sưu tầm nam châm dán tủ lạnh làm kỷ niệm."],
+ ["Wie schickt Ben seiner Familie Grüße aus dem Urlaub?",["Er ruft immer nur an.","Er schickt Postkarten mit einer Briefmarke.","Er schreibt eine E-Mail."],1,"Ben giữ thói quen truyền thống là gửi thiệp mừng dán tem cho gia đình."],
+ ["Was macht Ben gerne im Winterurlaub im Schnee?",["Er fährt gern Ski.","Er baut nur einen Schneemann.","Er macht keinen Urlaub im Winter."],0,"Trượt tuyết là sở thích của Ben vào mùa đông."],
+ ["Welchen Gegenstand finden Ben und Anna beim Kofferpacken besonders wichtig, damit das Handy nicht leer wird?",["Das Ladegerät","Eine Kamera","Ein Buch"],0,"Cả hai đều nhắc nhở không được quên mang theo cục sạc điện thoại khi đóng gói hành lý."],
+ ["Was ist Annas Traumurlaub, wenn Geld keine Rolle spielt?",["Nur nach Japan reisen","Eine Weltreise machen","Ein Haus in den Alpen kaufen"],1,"Trong khi Ben mơ ước đến Nhật Bản, Anna muốn thực hiện một chuyến đi vòng quanh thế giới."],
+ ["Welche 3 nützlichen Sätze empfehlen Ben und Anna am Ende des Videos zum Üben?",["„Guten Tag!“, „Wo ist der Strand?“, „Auf Wiedersehen!“","„Entschuldigung, sprechen Sie Englisch?“, „Ich hätte gern eine Pizza bitte.“, „Wie viel kostet das?“","„Wie geht es Ihnen?“, „Ich habe Hunger.“, „Danke schön!“"],1,"Đây là 3 câu giao tiếp thực tế mẫu được hai bạn nhấn mạnh ở cuối bài học."]
+];
+const L=["A","B","C"];
+let qi=0,qRight=0,qAns=[];
+function openQuiz(){qi=0;qRight=0;qAns=[];$("qRes").style.display="none";$("qMain").style.display="block";show("quiz");drawQ()}
+function drawQ(){
+  const q=QUIZ[qi];
+  $("qCount").textContent=`Frage ${qi+1} / ${QUIZ.length}`;$("qScore").textContent="Richtig: "+qRight;
+  $("qFill").style.width=(qi/QUIZ.length*100)+"%";
+  $("qText").textContent=(qi+1)+". "+q[0];
+  $("qOpts").innerHTML=q[1].map((o,j)=>`<button class="qopt" data-j="${j}"><span class="l">${L[j]}</span><span>${esc(o)}</span></button>`).join("");
+  $("qExp").className="qexp";$("qExp").innerHTML="";$("qNext").classList.remove("show");
+  $("qNext").innerHTML=qi===QUIZ.length-1?"Ergebnis ansehen<small>Xem kết quả</small>":"Weiter<small>Câu tiếp theo</small>";
+  $("qOpts").querySelectorAll(".qopt").forEach(b=>b.onclick=()=>answer(+b.dataset.j));
+  $("quiz").scrollTop=0;
+}
+function answer(j){
+  const q=QUIZ[qi],ok=j===q[2];if(ok)qRight++;qAns.push(j);
+  $("qOpts").querySelectorAll(".qopt").forEach((b,k)=>{b.disabled=true;
+    if(k===q[2])b.classList.add("right");else if(k===j)b.classList.add("wrong");else b.classList.add("dim")});
+  const e=$("qExp");e.className="qexp show "+(ok?"ok":"bad");
+  e.innerHTML=`<b>${ok?"✓ Richtig! Chính xác!":"✗ Leider falsch. Đáp án đúng: "+L[q[2]]}</b>${L[q[2]]}. ${esc(q[1][q[2]])} — ${esc(q[3])}`;
+  $("qScore").textContent="Richtig: "+qRight;$("qNext").classList.add("show");
+  setTimeout(()=>e.scrollIntoView({behavior:"smooth",block:"nearest"}),50);
+}
+$("qNext").onclick=()=>{qi++;if(qi<QUIZ.length)drawQ();else qFinish()};
+function qFinish(){
+  $("qFill").style.width="100%";$("qMain").style.display="none";
+  const r=$("qRes");r.style.display="block";
+  const t=QUIZ.length;
+  r.innerHTML=`<div class="qcard" style="margin-top:0"><h2>${qRight===t?"Perfekt!":qRight>=7?"Super!":"Weiter so!"}</h2>
+    <div class="score">${qRight} / ${t}</div><p>${qRight===t?"Bạn trả lời đúng tất cả các câu! 🎉":"Xem lại những câu sai bên dưới nhé."}</p></div>
+    <div class="qreview">${QUIZ.map((q,i)=>{const ok=qAns[i]===q[2];
+      return `<div class="${ok?"v":"x"}"><b>${i+1}. ${esc(q[0])}</b><br>${ok?"✓ ":"✗ Bạn chọn: "+L[qAns[i]]+" · "}Đáp án: ${L[q[2]]}. ${esc(q[1][q[2]])}</div>`}).join("")}</div>
+    <div class="qbtns"><button class="big" style="background:#5E9A3A;box-shadow:0 5px 0 #3C6824" id="qAgain">Quiz nochmal<small>Làm lại bài trắc nghiệm</small></button>
+    <button class="big qghost" id="qMenu">Zum Menü<small>Về màn hình chính</small></button></div>`;
+  $("qAgain").onclick=openQuiz;$("qMenu").onclick=()=>show("start");
+  $("quiz").scrollTop=0;if(qRight>=t*.5)confetti();
+}
+$("openQuiz").onclick=openQuiz;
+$("qHome").onclick=()=>show("start");
+
+function confetti(){const cv=$("confetti"),ctx=cv.getContext("2d");cv.width=innerWidth;cv.height=innerHeight;
+  const cols=["#FFB627","#F2665A","#FFF7E8","#2E8B57","#9ED3F5"];
+  const P=Array.from({length:140},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*.5,w:6+Math.random()*6,h:10+Math.random()*8,vy:2+Math.random()*3,vx:-1.5+Math.random()*3,r:Math.random()*6,vr:-.2+Math.random()*.4,c:cols[Math.random()*5|0]}));
+  const t0=performance.now();(function f(t){ctx.clearRect(0,0,cv.width,cv.height);
+    P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore()});
+    if(t-t0<3500)requestAnimationFrame(f);else ctx.clearRect(0,0,cv.width,cv.height)})(t0)}
+</script>
+</body>
+</html>
